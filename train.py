@@ -54,10 +54,10 @@ trainer = Seq2SeqTrainer(
         args=Seq2SeqTrainingArguments(
             optim='adamw_apex_fused',
             overwrite_output_dir =True,
-            output_dir="/data/ruanjh/best_training_method/t5-raw",
+            output_dir="/data/ruanjh/best_training_method/t5-raw-8card",
             logging_steps=1,
             remove_unused_columns =False,
-            gradient_accumulation_steps=32,
+            gradient_accumulation_steps=16,
             #------------------------------
             evaluation_strategy='steps',
             data_seed =42,
@@ -69,7 +69,7 @@ trainer = Seq2SeqTrainer(
             save_total_limit =3,
             load_best_model_at_end=True,
             #--------------------------------
-            dataloader_num_workers =0,
+            dataloader_num_workers =8,
             num_train_epochs=4,
             # auto_find_batch_size=True,
             per_device_train_batch_size=2,
@@ -85,10 +85,10 @@ trainer = Seq2SeqTrainer(
         
     )
 
-dataloader=trainer.get_train_dataloader()
-from tqdm import tqdm
-for d in tqdm(dataloader):
-    print(d['labels'])
-    exit()
+# dataloader=trainer.get_train_dataloader()
+# from tqdm import tqdm
+# for d in tqdm(dataloader):
+#     print(d['labels'])
+#     exit()
 trainer.train(resume_from_checkpoint=False)
-trainer.save_model('/data/ruanjh/best_training_method/t5-raw')
+trainer.save_model('/data/ruanjh/best_training_method/t5-raw-8card')

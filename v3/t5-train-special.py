@@ -110,7 +110,7 @@ trainer = KLTrainer(
         output_dir=output_path,
         logging_steps=5,
         remove_unused_columns=False,
-        gradient_accumulation_steps=1,
+        gradient_accumulation_steps=16,
         # ------------------------------
         evaluation_strategy="no",
         learning_rate = args.learning_rate,

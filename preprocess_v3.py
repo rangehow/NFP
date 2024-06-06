@@ -120,6 +120,9 @@ if __name__ == "__main__":
         if clm_mode:
             print("clm_dict", len(clm_dict))
         # print('debug_cnt',debug_cnt)
+        
+        # 第一阶段结束 ============================
+        
         multiple_cnt = 0
         total_len=0
         for j in tqdm(range(len(train_dateset)), desc="second stage"):

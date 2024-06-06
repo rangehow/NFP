@@ -85,8 +85,8 @@ else:
     total_dict = defaultdict(Counter)
     clm_dict = defaultdict(Counter)
 
-def generate(example):
-    # print('?',example['labels'][0],rank)
+def statistic(example):
+
 
     for j in range(len(example['labels'])):
 
@@ -167,30 +167,24 @@ if __name__ == "__main__":
     # debug_cnt=0
     for input, output in file:
         
-        # with open(f"/data/ruanjh/best_training_method/iwslt17/{input}.json") as f:
-        #     train_data = json.load(f)
         
-        # train_dateset = PreprocessDataset(train_data, tokenizer)
+        # 1.加载原始数据集
         if args.data_dir.endswith('.json'):
             train_dateset=datasets.load_dataset('json',data_files=args.data_dir)[f'{input}']
 
         else:
+            # wmt19的数据集太大了,就读个3百万意思一下
             train_dateset=datasets.load_from_disk(args.data_dir)[f'{input}'][:3000000]
-        train_dateset=train_dateset.map(partial(ugly_allocate,tokenizer=tokenizer),remove_columns=train_dateset.features.keys(),batched=True,num_proc=96,load_from_cache_file=False)
         
-        train_dateset.map(partial(generate),batched=True,num_proc=1)
-        train_dateset.map(partial(reformate),batched=True,num_proc=50)
-        # train_dateset=train_dateset.map(partial(generate,clm_mode=clm_mode,mono=mono),batched=True,cache_file_name=f'{args.data_dir}/{input}_final.cache',num_proc=50,load_from_cache_file=True)
-        # dataloader=DataLoader(train_dateset,batch_size=10000,collate_fn=lambda x:x)
-        # cache_dir=args.cache_dir
-        # cnt=0
-        # for d in tqdm(dataloader):
-        #     temp_result=generate(d,clm_mode=clm_mode,mono=mono)
+        # 2.token化
+        train_dateset=train_dateset.map(partial(ugly_allocate,tokenizer=tokenizer),remove_columns=train_dateset.features.keys(),batched=True,num_proc=96,load_from_cache_file=False,desc='token化原始数据')
         
-        #     with open(args.cache_dir+f'/{cnt}','wb') as o:
-        #         pickle.dump(temp_result,o,protocol=5,)
-        #     cnt+=1
-        # exit()
+        # 3.全局统计结构
+        train_dateset.map(partial(statistic),batched=True,num_proc=1,desc='统计supervised和clm信息')
+        
+        # 4.重组数据集
+        train_dateset.map(partial(reformate),batched=True,num_proc=1,desc='增强原始数据,最终结果')
+
             
         aa=pickle.load(open('/data/ruanjh/best_training_method/t5/real_total_dict_train_supervised','rb'))
         print(aa==real_total_clm_dict)

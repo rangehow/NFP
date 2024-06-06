@@ -14,7 +14,6 @@ class MyDataset(Dataset):
         if isinstance(data[0],dict):
             src=[d['en'] for d in data]
             
-            
         else:
             src=[d[:-1] for d in data]
         
