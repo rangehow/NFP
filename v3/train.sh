@@ -31,15 +31,15 @@
 # --div_mode False --clm True> t5-v4-ce-5gram-005-accumulation1-lr2e5.log   2>t5-v4-ce-5gram-005-accumulation1-lr2e5.err"
 
 
-# tmux new-session -d -s nondivmode02 "CUDA_VISIBLE_DEVICES=0,1 torchrun --master-port 29699 --nproc_per_node 2 /data/ruanjh/best_training_method/t5/v3/t5-train-special.py \
-# --model_dir /data/ruanjh/best_training_method/t5v1_1-large \
-# --data_dir /data/ruanjh/best_training_method/t5 \
-# --output_path /data/ruanjh/t5-v4-ce-5gram-005-accumulation1 \
-# --ce True \
-# --zero_prob 0.05 \
-# --div_mode False --clm True > t5-v4-ce-5gram-005-accumulation1.log   2>t5-v4-ce-5gram-005-accumulation1.err"
+tmux new-session -d -s nondivmode02 "CUDA_VISIBLE_DEVICES=0,1 torchrun --master-port 29699 --nproc_per_node 2 /data/ruanjh/best_training_method/t5/v3/t5-train-special.py \
+--model_dir /data/ruanjh/best_training_method/t5v1_1-large \
+--data_dir /data/ruanjh/best_training_method/t5 \
+--output_path /data/ruanjh/6m21d_t5-v4-ce-5gram-005 \
+--ce True \
+--zero_prob 0.05 \
+--div_mode False --clm True 
 
-tmux new-session -d -s raw " torchrun --master-port 29699 --nproc_per_node 8 /data/ruanjh/best_training_method/t5/train.py \
+tmux new-session -d -s raw " torchrun --master-port 29697 --nproc_per_node 8 /data/ruanjh/best_training_method/t5/train.py \
  > t5-raw-8card.log   2>t5-raw-8card.err"
 
 # 输出tmux会话已经启动

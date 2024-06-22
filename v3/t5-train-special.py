@@ -29,7 +29,7 @@ faulthandler.enable()
 def parse_args():
     parser=argparse.ArgumentParser()
     parser.add_argument('--model_dir',default="/data/ruanjh/best_training_method/t5v1_1-large") 
-    parser.add_argument('--data_dir',default="/data/ruanjh/best_training_method")
+    parser.add_argument('--data_dir',default="/data/ruanjh/best_training_method/t5")
     parser.add_argument('--output_path',default=None)
     parser.add_argument('--ce',default=True,type=ast.literal_eval)
     parser.add_argument('--div_mode',default=False,type=ast.literal_eval)
@@ -105,7 +105,7 @@ trainer = KLTrainer(
     tokenizer=tokenizer,
     # optimizers=('adamw_apex_fused',None),
     args=TrainingArguments(
-        optim='adamw_apex_fused',
+        # optim='adamw_apex_fused',
         overwrite_output_dir=True,
         output_dir=output_path,
         logging_steps=5,
@@ -118,12 +118,12 @@ trainer = KLTrainer(
         # eval_delay=100,
         # eval_steps=0.2,
         # -------------------------------
-        save_strategy="epoch",
+        save_strategy="no",
         # save_steps=0.2,
-        save_total_limit=4,
+        # save_total_limit=4,
         # load_best_model_at_end=True,
         # --------------------------------
-        dataloader_num_workers=0,
+        dataloader_num_workers=8,
         num_train_epochs=4,
         # auto_find_batch_size=True,
         per_device_train_batch_size=args.batch_size,
