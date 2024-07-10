@@ -14,8 +14,9 @@ from transformers import (
 )
 from torch.utils.data import Dataset, DataLoader
 import datasets
+
 # from parameter import parameter_cnt
-from peft import LoraConfig, get_peft_model,prepare_model_for_kbit_training
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 import pickle
 import torch
 import argparse
@@ -23,31 +24,34 @@ from dataset import SpecialDataset, SpecialDataCollator
 from special_trainer import KLTrainer
 import faulthandler
 import ast
+from ..config import *
+
 # 启用faulthandler
 faulthandler.enable()
 
+
 def parse_args():
-    parser=argparse.ArgumentParser()
-    parser.add_argument('--model_dir',default="/data/ruanjh/best_training_method/t5v1_1-large") 
-    parser.add_argument('--data_dir',default="/data/ruanjh/best_training_method/t5")
-    parser.add_argument('--output_path',default=None)
-    parser.add_argument('--ce',default=True,type=ast.literal_eval)
-    parser.add_argument('--div_mode',default=False,type=ast.literal_eval)
-    parser.add_argument('--zero_prob',default=0.1,type=ast.literal_eval)
-    parser.add_argument('--clm',default=False,type=ast.literal_eval)
-    parser.add_argument('--learning_rate',default=5e-5,type=ast.literal_eval)
-    parser.add_argument('--batch_size',default=2)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--model",
+    )
+    parser.add_argument("--dataset")
+    parser.add_argument("--output_path", default=None)
+    parser.add_argument("--ce", default=True, type=ast.literal_eval)
+    parser.add_argument("--div_mode", default=False, type=ast.literal_eval)
+    parser.add_argument("--zero_prob", default=0.1, type=ast.literal_eval)
+    parser.add_argument("--clm", default=False, type=ast.literal_eval)
+    parser.add_argument("--learning_rate", default=5e-5, type=ast.literal_eval)
+    parser.add_argument("--batch_size", default=2)
     return parser.parse_args()
 
 
-args=parse_args()
+args = parse_args()
 
 print(args)
 
 
-tokenizer = AutoTokenizer.from_pretrained(
-    args.model_dir
-)
+tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
 
 collator = SpecialDataCollator(tokenizer)
 # 检查数据的调试代码----------------------------------
@@ -72,28 +76,32 @@ collator = SpecialDataCollator(tokenizer)
 # ------------------------------------------------------
 
 
-
-model = T5ForConditionalGeneration.from_pretrained(
-    args.model_dir, 
-#     quantization_config=config
-)
+model = T5ForConditionalGeneration.from_pretrained(model_dir[args.model])
 
 
-with open(f"{args.data_dir}/real_total_dict_train_supervised", "rb") as f:
+with open(f"{output_dir[args.dataset]}_supervised", "rb") as f:
     train_dict_supervised = pickle.load(f)
 
 if args.clm:
-    with open(f"{args.data_dir}/real_total_dict_train_clm", "rb") as f:
+    with open(f"{output_dir[args.dataset]}_clm", "rb") as f:
         train_dict_clm = pickle.load(f)
 else:
-    train_dict_clm=None
+    train_dict_clm = None
 
 
-output_path=args.output_path
+output_path = args.output_path
 
-train_dataset = SpecialDataset(train_dict_supervised, tokenizer=tokenizer,clm=train_dict_clm, zero_prob=args.zero_prob,hybrid=False,quick_mode=True,div_mode=args.div_mode)
+train_dataset = SpecialDataset(
+    train_dict_supervised,
+    tokenizer=tokenizer,
+    clm=train_dict_clm,
+    zero_prob=args.zero_prob,
+    hybrid=False,
+    quick_mode=True,
+    div_mode=args.div_mode,
+)
 
-print('load dataset done')
+print("load dataset done")
 print(output_path)
 
 
@@ -113,8 +121,8 @@ trainer = KLTrainer(
         gradient_accumulation_steps=16,
         # ------------------------------
         evaluation_strategy="no",
-        learning_rate = args.learning_rate,
-        data_seed =42,
+        learning_rate=args.learning_rate,
+        data_seed=42,
         # eval_delay=100,
         # eval_steps=0.2,
         # -------------------------------
