@@ -20,8 +20,8 @@ from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 import pickle
 import torch
 import argparse
-from dataset import SpecialDataset, SpecialDataCollator
-from special_trainer import KLTrainer
+from .dataset import SpecialDataset, SpecialDataCollator
+from .special_trainer import KLTrainer
 import faulthandler
 import ast
 from ..config import *
@@ -42,7 +42,7 @@ def parse_args():
     parser.add_argument("--zero_prob", default=0.1, type=ast.literal_eval)
     parser.add_argument("--clm", default=False, type=ast.literal_eval)
     parser.add_argument("--learning_rate", default=5e-5, type=ast.literal_eval)
-    parser.add_argument("--batch_size", default=2)
+    parser.add_argument("--batch_size", default=4)
     return parser.parse_args()
 
 
@@ -51,7 +51,7 @@ args = parse_args()
 print(args)
 
 
-tokenizer = AutoTokenizer.from_pretrained(args.model_dir)
+tokenizer = AutoTokenizer.from_pretrained(model_dir[args.model])
 
 collator = SpecialDataCollator(tokenizer)
 # 检查数据的调试代码----------------------------------
@@ -76,7 +76,9 @@ collator = SpecialDataCollator(tokenizer)
 # ------------------------------------------------------
 
 
-model = T5ForConditionalGeneration.from_pretrained(model_dir[args.model])
+model = T5ForConditionalGeneration.from_pretrained(
+    model_dir[args.model], device_map="auto"
+)
 
 
 with open(f"{output_dir[args.dataset]}_supervised", "rb") as f:
@@ -118,7 +120,7 @@ trainer = KLTrainer(
         output_dir=output_path,
         logging_steps=5,
         remove_unused_columns=False,
-        gradient_accumulation_steps=16,
+        gradient_accumulation_steps=32,
         # ------------------------------
         evaluation_strategy="no",
         learning_rate=args.learning_rate,
@@ -131,11 +133,11 @@ trainer = KLTrainer(
         # save_total_limit=4,
         # load_best_model_at_end=True,
         # --------------------------------
-        dataloader_num_workers=8,
+        dataloader_num_workers=32,
         num_train_epochs=4,
         # auto_find_batch_size=True,
         per_device_train_batch_size=args.batch_size,
-        per_device_eval_batch_size=2,
+        per_device_eval_batch_size=8,
         bf16=True,
         prediction_loss_only=True,
     ),
